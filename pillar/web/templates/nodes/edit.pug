@@ -1,0 +1,17 @@
+| {% extends 'projects/view.pug' %}
+
+| {% block body %}
+#project-container.container
+	div.page-content
+		| {% include 'nodes/edit_embed.pug' %}
+| {% endblock body %}
+
+| {% block footer_scripts %}
+| {{ super() }}
+script.
+	$(function () {
+		updateUi('', 'edit');
+	});
+
+| {% endblock footer_scripts %}
+

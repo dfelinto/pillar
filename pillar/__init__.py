@@ -268,6 +268,9 @@ class PillarServer(Eve):
         custom_jinja_loader = jinja2.ChoiceLoader(paths_list)
         self.jinja_loader = custom_jinja_loader
 
+        # Enable PyPugJS for working with .pug files (instead of .html)
+        self.jinja_env.add_extension('pypugjs.ext.jinja.PyPugJSExtension')
+
         pillar.web.jinja.setup_jinja_env(self.jinja_env)
 
     def _config_static_dirs(self):
@@ -430,9 +433,9 @@ class PillarServer(Eve):
 
         # See whether we should return an embedded page or a regular one.
         if request.is_xhr:
-            fname = 'errors/%i_embed.html' % error_ob.code
+            fname = 'errors/%i_embed.pug' % error_ob.code
         else:
-            fname = 'errors/%i.html' % error_ob.code
+            fname = 'errors/%i.pug' % error_ob.code
 
         # Also handle the case where we didn't create a template for this error.
         try:
@@ -440,7 +443,7 @@ class PillarServer(Eve):
         except TemplateNotFound:
             self.log.warning('Error template %s for code %i not found',
                              fname, error_ob.code)
-            return render_template('errors/500.html'), error_ob.code
+            return render_template('errors/500.pug'), error_ob.code
 
     def finish_startup(self):
         self.log.info('Using MongoDB database %r', self.config['MONGO_DBNAME'])

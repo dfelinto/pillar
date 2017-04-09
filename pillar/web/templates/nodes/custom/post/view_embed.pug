@@ -1,0 +1,43 @@
+
+#blog_container(class="{% if project and project._id == config.MAIN_PROJECT_ID %}cloud-blog{% endif %}")
+
+	#blog_post-container
+		| {% if project and project._id == config.MAIN_PROJECT_ID %}
+		a.btn.btn-default.button-back(href="{{ url_for('projects.view', project_url=project.url) }}blog")
+			| Back to Blog
+
+		| {% if node.has_method('PUT') %}
+		a.btn.btn-default.button-edit(href="{{url_for('nodes.edit', node_id=node._id)}}")
+			i.pi-edit
+			| Edit Post
+		| {% endif %}
+
+		.clearfix
+		| {% endif %}
+
+		| {% if node.picture %}
+		.blog_index-header
+			img(src="{{ node.picture.thumbnail('l', api=api) }}")
+		| {% endif %}
+		.blog_index-item
+
+			.item-title
+				| {{node.name}}
+
+			.item-info.
+				<span title="{{node._created}}">{{node._created | pretty_date }}</span>
+				{% if node._created != node._updated %}
+				<span title="{{node._updated}}">(updated {{node._updated | pretty_date }})</span>
+				{% endif %}
+				{% if node.properties.category %}| {{node.properties.category}}{% endif %}
+				| by {{node.user.full_name}}
+
+			.item-content
+				| {{ node.properties.content }}
+
+
+		#comments-embed
+			#comments-list-items-loading
+				i.pi-spin
+
+| {% include 'nodes/custom/_scripts.pug' %}

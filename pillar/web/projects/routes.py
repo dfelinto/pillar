@@ -57,7 +57,7 @@ def index():
         utils.attach_project_pictures(project, api)
 
     return render_template(
-        'projects/index_dashboard.html',
+        'projects/index_dashboard.pug',
         gravatar=utils.gravatar(current_user.email, size=128),
         projects_user=projects_user['_items'],
         projects_shared=projects_shared['_items'],
@@ -114,7 +114,7 @@ def home_project_shared_images():
     }
 
     return render_project(project, api, extra_context,
-                          template_name='projects/home_images.html')
+                          template_name='projects/home_images.pug')
 
 
 def _home_project(api):
@@ -298,7 +298,7 @@ def render_project(project, api, extra_context=None, template_name=None):
         extra_context = {}
 
     if project.category == 'home' and not current_app.config['RENDER_HOME_AS_REGULAR_PROJECT']:
-        template_name = template_name or 'projects/home_index.html'
+        template_name = template_name or 'projects/home_index.pug'
         return render_template(
             template_name,
             gravatar=utils.gravatar(current_user.email, size=128),
@@ -311,7 +311,7 @@ def render_project(project, api, extra_context=None, template_name=None):
             embed_string = '_embed'
         else:
             embed_string = ''
-        template_name = "projects/view{0}.html".format(embed_string)
+        template_name = 'projects/view{0}.pug'.format(embed_string)
 
     extension_sidebar_links = current_app.extension_sidebar_links(project)
 
@@ -370,7 +370,7 @@ def view_node(project_url, node_id):
         try:
             node = Node.find(node_id, api=api)
         except ForbiddenAccess:
-            return render_template('errors/403.html'), 403
+            return render_template('errors/403.pug'), 403
         except ResourceNotFound:
             raise wz_exceptions.NotFound('No such node')
 
@@ -394,7 +394,7 @@ def view_node(project_url, node_id):
 
     extension_sidebar_links = current_app.extension_sidebar_links(project)
 
-    return render_template('projects/view{}.html'.format(theatre),
+    return render_template('projects/view{}.pug'.format(theatre),
                            api=api,
                            project=project,
                            node=node,
@@ -427,7 +427,7 @@ def search(project_url):
     project.picture_square = utils.get_file(project.picture_square, api=api)
     project.picture_header = utils.get_file(project.picture_header, api=api)
 
-    return render_template('nodes/search.html',
+    return render_template('nodes/search.pug',
                            project=project,
                            og_picture=project.picture_header)
 
@@ -488,7 +488,7 @@ def edit(project_url):
     else:
         hidden_fields = ['url', 'status', 'is_private', 'category']
 
-    return render_template('projects/edit.html',
+    return render_template('projects/edit.pug',
                            form=form,
                            hidden_fields=hidden_fields,
                            project=project,
@@ -508,7 +508,7 @@ def edit_node_types(project_url):
 
     utils.attach_project_pictures(project, api)
 
-    return render_template('projects/edit_node_types.html',
+    return render_template('projects/edit_node_types.pug',
                            api=api,
                            project=project)
 
@@ -555,7 +555,7 @@ def edit_node_type(project_url, node_type_name):
             form.form_schema.data = json.dumps(form_schema, indent=4)
             form.dyn_schema.data = json.dumps(dyn_schema, indent=4)
             form.permissions.data = json.dumps(permissions, indent=4)
-    return render_template('projects/edit_node_type.html',
+    return render_template('projects/edit_node_type.pug',
                            form=form,
                            project=project,
                            api=api,
@@ -597,7 +597,7 @@ def sharing(project_url):
 
     utils.attach_project_pictures(project, api)
 
-    return render_template('projects/sharing.html',
+    return render_template('projects/sharing.pug',
                            api=api,
                            project=project,
                            users=users['_items'])

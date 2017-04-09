@@ -30,7 +30,7 @@ def homepage():
     # Workaround to cache rendering of a page if user not logged in
     @current_app.cache.cached(timeout=3600)
     def render_page():
-        return render_template('join.html')
+        return render_template('join.pug')
 
     if current_user.is_anonymous:
         return render_page()
@@ -95,7 +95,7 @@ def homepage():
     activity_stream = sorted(activities, key=sort_key, reverse=True)
 
     return render_template(
-        'homepage.html',
+        'homepage.pug',
         main_project=main_project,
         latest_posts=latest_posts._items,
         activity_stream=activity_stream,
@@ -105,17 +105,17 @@ def homepage():
 
 # @blueprint.errorhandler(500)
 # def error_500(e):
-#     return render_template('errors/500.html'), 500
+#     return render_template('errors/500.pug'), 500
 #
 #
 # @blueprint.errorhandler(404)
 # def error_404(e):
-#     return render_template('errors/404.html'), 404
+#     return render_template('errors/404.pug'), 404
 #
 #
 # @blueprint.errorhandler(403)
 # def error_404(e):
-#     return render_template('errors/403_embed.html'), 403
+#     return render_template('errors/403_embed.pug'), 403
 #
 
 @blueprint.route('/join')
@@ -127,7 +127,7 @@ def join():
 @blueprint.route('/services')
 def services():
     """Services page"""
-    return render_template('services.html')
+    return render_template('services.pug')
 
 
 @blueprint.route('/blog/')
@@ -204,7 +204,7 @@ def open_projects():
     def render_page():
         projects = get_projects('film')
         return render_template(
-            'projects/index_collection.html',
+            'projects/index_collection.pug',
             title='open-projects',
             projects=projects._items,
             api=system_util.pillar_api())
@@ -218,7 +218,7 @@ def training():
     def render_page():
         projects = get_projects('training')
         return render_template(
-            'projects/index_collection.html',
+            'projects/index_collection.pug',
             title='training',
             projects=projects._items,
             api=system_util.pillar_api())
@@ -261,19 +261,19 @@ def vrview():
     """Call this from iframes to render sperical content (video and images)"""
     if 'image' not in request.args:
         return redirect('/')
-    return render_template('vrview.html')
+    return render_template('vrview.pug')
 
 
 @blueprint.route('/403')
 def error_403():
     """Custom entry point to display the not allowed template"""
-    return render_template('errors/403_embed.html')
+    return render_template('errors/403_embed.pug')
 
 
 @blueprint.route('/join-agent')
 def join_agent():
     """Custom page to support Agent 327 barbershop campaign"""
-    return render_template('join_agent.html')
+    return render_template('join_agent.pug')
 
 
 # Shameful redirects
@@ -317,4 +317,4 @@ def feeds_blogs():
 
 @blueprint.route('/search')
 def nodes_search_index():
-    return render_template('nodes/search.html')
+    return render_template('nodes/search.pug')

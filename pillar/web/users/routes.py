@@ -99,7 +99,7 @@ def login_local():
         # If correct, receive token and log in the user
         pillar.auth.login_user(res['token'])
         return redirect(url_for('main.homepage'))
-    return render_template('users/login.html', form=form)
+    return render_template('users/login.pug', form=form)
 
 
 @blueprint.route('/logout')
@@ -133,7 +133,7 @@ def settings_profile():
             message = json.loads(e.content)
             flash(message)
 
-    return render_template('users/settings/profile.html', form=form, title='profile')
+    return render_template('users/settings/profile.pug', form=form, title='profile')
 
 
 @blueprint.route('/settings/emails', methods=['GET', 'POST'])
@@ -170,7 +170,7 @@ def settings_emails():
             message = json.loads(e.content)
             flash(message)
 
-    return render_template('users/settings/emails.html', form=form, title='emails')
+    return render_template('users/settings/emails.pug', form=form, title='emails')
 
 
 @blueprint.route('/settings/billing')
@@ -191,7 +191,7 @@ def settings_billing():
     store_user = subscriptions.fetch_user(user.email)
 
     return render_template(
-        'users/settings/billing.html',
+        'users/settings/billing.pug',
         store_user=store_user, groups=groups, title='billing')
 
 
@@ -213,7 +213,7 @@ def users_edit(user_id):
         _users_edit(form, user, api)
     else:
         form.roles.data = user.roles
-    return render_template('users/edit_embed.html',
+    return render_template('users/edit_embed.pug',
         user=user,
         form=form)
 
@@ -246,7 +246,7 @@ def _users_edit(form, user, api):
 def users_index():
     if not current_user.has_role('admin'):
         return abort(403)
-    return render_template('users/index.html')
+    return render_template('users/index.pug')
 
 
 def user_roles_update(user_id):

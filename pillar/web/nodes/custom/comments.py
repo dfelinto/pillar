@@ -155,7 +155,7 @@ def comments_index():
         project = Project({'_id': parent_node.project})
         has_method_POST = project.node_type_has_method('comment', 'POST', api=api)
         # Data will be requested via javascript
-        return_content = render_template('nodes/custom/_comments.html',
+        return_content = render_template('nodes/custom/_comments.pug',
                                          parent_id=parent_id,
                                          has_method_POST=has_method_POST)
     return return_content
@@ -204,7 +204,7 @@ def comments_for_node(node_id):
     nr_of_comments = sum(1 + comment['_replies']['_meta']['total']
                          for comment in comments['_items'])
 
-    return render_template('nodes/custom/comment/list_embed.html',
+    return render_template('nodes/custom/comment/list_embed.pug',
                            node_id=node_id,
                            comments=comments,
                            nr_of_comments=nr_of_comments,
@@ -225,7 +225,7 @@ def commentform_for_node(node_id):
     project = Project({'_id': node.project})
     can_post_comments = project.node_type_has_method('comment', 'POST', api=api)
 
-    return render_template('nodes/custom/comment/list_embed.html',
+    return render_template('nodes/custom/comment/list_embed.pug',
                            node_id=node_id,
                            show_comments=False,
                            can_post_comments=can_post_comments)

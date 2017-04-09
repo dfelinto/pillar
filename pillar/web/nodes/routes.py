@@ -114,9 +114,9 @@ def view(node_id):
     try:
         node = Node.find(node_id, api=api)
     except ResourceNotFound:
-        return render_template('errors/404_embed.html')
+        return render_template('errors/404_embed.pug')
     except ForbiddenAccess:
-        return render_template('errors/403_embed.html')
+        return render_template('errors/403_embed.pug')
 
     node_type_name = node.node_type
 
@@ -187,7 +187,7 @@ def view(node_id):
             'where': children_where,
             'sort': [('properties.order', 1), ('name', 1)]}, api=api)
     except ForbiddenAccess:
-        return render_template('errors/403_embed.html')
+        return render_template('errors/403_embed.pug')
     children = children._items
 
     for child in children:
@@ -209,11 +209,11 @@ def view(node_id):
         template_path = os.path.join('nodes', 'custom', 'asset')
         template_action = 'view_theatre'
 
-    template_path = '{0}/{1}_embed.html'.format(template_path, template_action)
+    template_path = '{0}/{1}_embed.pug'.format(template_path, template_action)
 
     # Full override for AMP view
     if request.args.get('format') == 'amp':
-        template_path = 'nodes/view_amp.html'
+        template_path = 'nodes/view_amp.pug'
 
     write_access = 'PUT' in (node.allowed_methods or set())
 
@@ -228,7 +228,7 @@ def view(node_id):
                                api=api)
     except TemplateNotFound:
         log.error('Template %s does not exist for node type %s', template_path, node_type_name)
-        return render_template('nodes/error_type_not_found.html',
+        return render_template('nodes/error_type_not_found.pug',
                                node_id=node._id,
                                node=node,
                                parent=node.parent,
@@ -448,7 +448,7 @@ def edit(node_id):
     else:
         attach_project_pictures(project, api)
 
-    template = '{0}/edit{1}.html'.format(node_type['name'], embed_string)
+    template = '{0}/edit{1}.pug'.format(node_type['name'], embed_string)
     # We should more simply check if the template file actually exsists on
     # the filesystem level
     try:
@@ -461,7 +461,7 @@ def edit(node_id):
             error=error,
             api=api)
     except TemplateNotFound:
-        template = 'nodes/edit{1}.html'.format(node_type['name'], embed_string)
+        template = 'nodes/edit{1}.pug'.format(node_type['name'], embed_string)
         is_embedded_edit = True if embed_string else False
         return render_template(
             template,

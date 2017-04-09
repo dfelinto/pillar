@@ -74,7 +74,7 @@ def posts_view(project_id=None, project_url=None, url=None):
         post['properties']['content'] = pillar.web.nodes.attachments.render_attachments(
             post, post['properties']['content'])
         return render_template(
-            'nodes/custom/post/view{0}.html'.format(main_project_template),
+            'nodes/custom/post/view{0}.pug'.format(main_project_template),
             blog=blog,
             node=post,
             posts=posts._items,
@@ -83,10 +83,10 @@ def posts_view(project_id=None, project_url=None, url=None):
             api=api)
     else:
         node_type_post = project.get_node_type('post')
-        template_path = 'nodes/custom/blog/index.html'
+        template_path = 'nodes/custom/blog/index.pug'
 
         return render_template(
-            'nodes/custom/blog/index{0}.html'.format(main_project_template),
+            'nodes/custom/blog/index{0}.pug'.format(main_project_template),
             node_type_post=node_type_post,
             posts=posts._items,
             project=project,
@@ -133,7 +133,7 @@ def posts_create(project_id):
             project_update_nodes_list(post, project_id=project._id, list_name='blog')
         return redirect(url_for_node(node=post))
     form.parent.data = blog._id
-    return render_template('nodes/custom/post/create.html',
+    return render_template('nodes/custom/post/create.pug',
                            node_type=node_type,
                            form=form,
                            project=project,

@@ -26,4 +26,3 @@ pillar/web/static/assets/css/*.css
 pillar/web/static/assets/js/*.min.js
 pillar/web/static/storage/
 pillar/web/static/uploads/
-pillar/web/templates/

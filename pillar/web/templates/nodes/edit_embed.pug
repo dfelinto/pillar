@@ -1,0 +1,230 @@
+| {% from '_macros/_node_edit_form.pug' import render_field %}
+
+| {% block body %}
+
+| {% with errors = errors %}
+| {% if errors %}
+
+| {% for field in errors %}
+.alert.alert-danger(role="alert")
+	strong {{field}}
+	| {% for message in errors[field] %}
+	| {{message}}|
+	| {% endfor %}
+
+| {% endfor %}
+
+| {% endif %}
+| {% endwith %}
+
+| {% if error!="" %}
+.alert.alert-danger(role="alert")
+	| {{error}}
+| {% endif %}
+
+#node-edit-container
+
+	form(
+		id="node-edit-form",
+		class="{{ node.node_type }}",
+		method="POST",
+		enctype="multipart/form-data",
+		action="{{url_for('nodes.edit', node_id=node._id)}}")
+
+		| {% for field in form %}
+
+		| {% if field.name == 'csrf_token' %}
+		| {{ field }}
+
+		| {% elif field.type == 'HiddenField' %}
+		| {{ field }}
+
+		| {% elif field.name == 'attachments' %}
+		#attachments-actions
+			.btn.btn-info#attachments-action-add
+				i.pi-plus
+				| Add New Attachment
+
+		| {{ render_field(field, field.name) }}
+
+		| {% elif field.name == 'files' %}
+		#files-actions
+			#files-action-add
+				i.pi-plus
+				| Add New File
+		| {{ render_field(field, field.name) }}
+
+		| {% else %}
+
+		| {{ render_field(field) }}
+
+		| {% endif %}
+
+		| {% endfor %}
+
+		ul.project-edit-tools.bottom
+			li.button-cancel
+				a#item_cancel.item-cancel.project-mode-edit(
+					href="javascript:void(0);",
+					title="Cancel changes")
+					i.button-cancel-icon.pi-cancel
+					| Cancel
+
+			li.button-save
+				a#item_save.item-save.project-mode-edit(
+					href="javascript:void(0);",
+					title="Save changes")
+					i.button-save-icon.pi-check
+					| Save Changes
+script(src="{{ url_for('static_pillar', filename='assets/js/vendor/jquery.ui.widget.min.js') }}")
+script(src="{{ url_for('static_pillar', filename='assets/js/vendor/jquery.iframe-transport.min.js') }}")
+script(src="{{ url_for('static_pillar', filename='assets/js/vendor/jquery.fileupload.min.js') }}")
+script(src="{{ url_for('static_pillar', filename='assets/js/vendor/jquery.select2.min.js') }}")
+script(src="{{ url_for('static_pillar', filename='assets/js/file_upload.min.js') }}")
+
+script(type="text/javascript").
+
+	$(function () {
+		$('#tags').select2();
+	});
+
+	var convert = new Markdown.getSanitizingConverter();
+	Markdown.Extra.init(convert);
+	convert = convert.makeHtml;
+
+	/* Build the markdown preview when typing in textarea */
+	$(function() {
+
+		var $textarea = $('.form-group.description textarea'),
+				$loader = $('<div class="md-preview-loading"><i class="pi-spin spin"></i></div>').insertAfter($textarea),
+				$preview = $('<div class="node-edit-form-md-preview" />').insertAfter($loader);
+
+		$loader.hide();
+
+		// Delay function to not start converting heavy posts immediately
+		var delay = (function(){
+			var timer = 0;
+			return function(callback, ms){
+				clearTimeout (timer);
+				timer = setTimeout(callback, ms);
+			};
+		})();
+
+		$textarea.keyup(function() {
+			/* If there's an iframe (YouTube embed), delay markdown convert 1.5s */
+			if (/iframe/i.test($textarea.val())) {
+				$loader.show();
+
+				delay(function(){
+					// Convert markdown
+					$preview.html(convert($textarea.val()));
+					$loader.hide();
+				}, 1500 );
+			} else {
+				// Convert markdown
+				$preview.html(convert($textarea.val()));
+			}
+		}).trigger('keyup');
+	});
+
+	$(function() {
+		$('input, textarea').keypress(function () {
+			// Unused: save status of the page as 'edited'
+			ProjectUtils.setProjectAttributes({isModified: true});
+			// Set the beforeunload to warn the user of unsaved changes
+			$(window).on('beforeunload', function () {
+				return 'You have unsaved changes in your asset.';
+			});
+		});
+	});
+
+	$("#item_save").unbind( "click" );
+	$("#item_cancel").unbind( "click" );
+	$(".file_delete").unbind( "click" );
+
+	/* Reset Save Changes button status */
+	$("li.button-save").removeClass('field-error saving');
+	$("li.button-save a#item_save").html('<i class="pi-check"></i> Save Changes');
+
+
+	/* Submit changes */
+	$("#node-edit-form").unbind("submit").submit(function(e) {
+		e.preventDefault();
+
+		// Assets always need a file
+		var $file = $('.form-group.file #file');
+		if ($file.val() == '') {
+			$file.addClass('error');
+			statusBarSet('error', 'No File Selected', 'pi-warning', 5000);
+			return jQuery.Deferred().reject("nofile");
+		}
+
+		$file.removeClass('error');
+
+		/* Let us know started saving */
+		$("li.button-save").addClass('saving');
+		$("li.button-save a#item_save").html('<i class="pi-spin spin"></i> Saving...');
+
+		$.ajax({
+			url: "{{url_for('nodes.edit', node_id=node._id)}}",
+			data: $(this).serialize(),
+			type: 'POST'
+		})
+		.fail(function(data){
+			/* Something went wrong, print it */
+			if (data.status == 422) {
+				statusBarSet('error', 'The submitted data could not be validated.', 'pi-warning', 8000);
+			} else {
+				statusBarSet('error', 'Error! We\'ve been notified and are working on it - '
+						+ data.status + ' ' + data.statusText, 'pi-warning', 8000);
+			}
+
+			$("li.button-save").addClass('field-error');
+			$("li.button-save a#item_save").html('<i class="pi-warning"></i> Houston!');
+
+			/* Back to normal */
+			setTimeout(function(){
+				$("li.button-save").removeClass('saving field-error');
+				$("li.button-save a#item_save").html('<i class="pi-check"></i> Save Changes');
+			}, 8000);
+		})
+		.done(function(dataHtml){
+			/* Success! */
+			// Disable beforeunolad when submitting a form
+			$(window).off('beforeunload');
+
+			{% if is_embedded_edit %}
+			/* Load content*/
+			$('#project_context').html(dataHtml);
+			statusBarSet('success', 'Saved Successfully', 'pi-check');
+
+			/* Style button */
+			$("li.button-save").removeClass('saving field-error');
+			$("li.button-save a#item_save").html('<i class="pi-check"></i> Save Changes');
+
+			// XXX TODO - Keeps displaying 'loading', needs further investigation
+			//- $('#project_tree').jstree("refresh");
+
+			updateUi(ProjectUtils.nodeId(), 'view');
+			{% else %}
+			// This code runs only if we are in direct node editing mode, and since we do a redirect,
+			// nothing of what follows is executed, because of the redirect.
+			location.href = "{{ url_for('nodes.view', node_id=node._id)}}";
+			{% endif %}
+		});
+
+	});
+
+	$('#item_save, .item-save').click(function(e){
+		e.preventDefault();
+		$("#node-edit-form").submit();
+	});
+
+	$('#item_cancel, .item-cancel').click(function(e){
+		displayNode('{{node._id}}');
+	});
+
+	$("#attachments-action-add").addNewFileButton();
+	$("#files-action-add").addNewFileButton();
+
+| {% endblock %}

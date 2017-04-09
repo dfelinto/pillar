@@ -1,0 +1,46 @@
+| {% block body %}
+
+#node-container
+	#node-overlay
+
+	| {% if node.picture %}
+	section#node-preview.node-preview.page
+		img.node-preview-thumbnail#node-preview-thumbnail(
+			src="{{ node.picture.thumbnail('l', api=api) }}")
+	| {% endif %}
+
+	section.node-details-container.page
+
+		.node-details-header
+			.node-title#node-title
+				| {{node.name}}
+
+		| {% if node.description %}
+		.node-details-description#node-description
+			| {{node.description}}
+		| {% endif %}
+
+		.node-details-meta.footer
+			span.updated(title="created {{ node._created | pretty_date }}") updated {{ node._updated | pretty_date }}
+
+| {% include 'nodes/custom/_scripts.pug' %}
+
+| {% endblock %}
+
+| {% block footer_scripts %}
+script.
+	// Push the correct URL onto the history. This push happens after the id has
+	// been pushed to the history already. We should probably keep only this and
+	// skip the project-level displayNode push.
+	
+	var url = '{{ node.properties.url }}'
+	var replace_state = {nodeId: '{{node._id}}', url: url};
+	window.history.replaceState(
+		replace_state,
+		'{{node.name}}',
+		url
+	);
+	// Generate GA pageview
+	ga('send', 'pageview', location.pathname);
+| {% endblock %}
+

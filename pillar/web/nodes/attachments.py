@@ -76,7 +76,7 @@ def render_attachment_file(attachment):
     try:
         renderer = file_renderers[mime_type_cat]
     except KeyError:
-        return flask.render_template('nodes/attachments/file_generic.html', file=sdk_file)
+        return flask.render_template('nodes/attachments/file_generic.pug', file=sdk_file)
 
     return renderer(sdk_file, attachment)
 
@@ -85,7 +85,7 @@ def render_attachment_file_image(sdk_file, attachment):
     """Renders an image file."""
 
     variations = {var.size: var for var in sdk_file.variations}
-    return flask.render_template('nodes/attachments/file_image.html',
+    return flask.render_template('nodes/attachments/file_image.pug',
                                  file=sdk_file, vars=variations, attachment=attachment)
 
 
