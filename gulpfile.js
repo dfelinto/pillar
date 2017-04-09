@@ -4,7 +4,6 @@ var chmod        = require('gulp-chmod');
 var concat       = require('gulp-concat');
 var gulp         = require('gulp');
 var gulpif       = require('gulp-if');
-var jade         = require('gulp-jade');
 var livereload   = require('gulp-livereload');
 var plumber      = require('gulp-plumber');
 var rename       = require('gulp-rename');
@@ -18,8 +17,7 @@ var enabled = {
     maps: argv.production,
     failCheck: argv.production,
     prettyPug: !argv.production,
-    cachify: !argv.production,
-    liveReload: !argv.production
+    cachify: !argv.production
 };
 
 
@@ -34,22 +32,16 @@ gulp.task('styles', function() {
         .pipe(autoprefixer("last 3 versions"))
         .pipe(gulpif(enabled.maps, sourcemaps.write(".")))
         .pipe(gulp.dest('pillar/web/static/assets/css'))
-        .pipe(gulpif(enabled.liveReload, livereload()));
+        .pipe(gulpif(argv.livereload, livereload()));
 });
 
 
-/* Templates - Jade */
-gulp.task('templates', function() {
-    gulp.src('src/templates/**/*.jade')
-        .pipe(gulpif(enabled.failCheck, plumber()))
-        .pipe(gulpif(enabled.cachify, cache('templating')))
-        .pipe(jade({
-            pretty: enabled.prettyPug
-        }))
-        .pipe(gulp.dest('pillar/web/templates/'))
-        .pipe(gulpif(enabled.liveReload, livereload()));
+/* Simple task for reloading the browser */
+gulp.task('reload', function(){
+    gulp
+        .src('pillar/web/templates/**/*.pug')
+        .pipe(gulpif(argv.livereload, livereload()));
 });
-
 
 /* Individual Uglified Scripts */
 gulp.task('scripts', function() {
@@ -62,7 +54,7 @@ gulp.task('scripts', function() {
         .pipe(gulpif(enabled.maps, sourcemaps.write(".")))
         .pipe(chmod(644))
         .pipe(gulp.dest('pillar/web/static/assets/js/'))
-        .pipe(gulpif(enabled.liveReload, livereload()));
+        .pipe(gulpif(argv.livereload, livereload()));
 });
 
 
@@ -77,7 +69,7 @@ gulp.task('scripts_concat_tutti', function() {
         .pipe(gulpif(enabled.maps, sourcemaps.write(".")))
         .pipe(chmod(644))
         .pipe(gulp.dest('pillar/web/static/assets/js/'))
-        .pipe(gulpif(enabled.liveReload, livereload()));
+        .pipe(gulpif(argv.livereload, livereload()));
 });
 
 gulp.task('scripts_concat_markdown', function() {
@@ -89,7 +81,7 @@ gulp.task('scripts_concat_markdown', function() {
         .pipe(gulpif(enabled.maps, sourcemaps.write(".")))
         .pipe(chmod(644))
         .pipe(gulp.dest('pillar/web/static/assets/js/'))
-        .pipe(gulpif(enabled.liveReload, livereload()));
+        .pipe(gulpif(argv.livereload, livereload()));
 });
 
 
@@ -98,10 +90,11 @@ gulp.task('watch',function() {
     // Only listen for live reloads if ran with --livereload
     if (argv.livereload){
         livereload.listen();
+        // Templates are built via python, we only need to reload the page
+        gulp.watch('pillar/web/templates/**/*.pug',['reload']);
     }
 
     gulp.watch('src/styles/**/*.sass',['styles']);
-    gulp.watch('src/templates/**/*.jade',['templates']);
     gulp.watch('src/scripts/*.js',['scripts']);
     gulp.watch('src/scripts/tutti/**/*.js',['scripts_concat_tutti']);
     gulp.watch('src/scripts/markdown/**/*.js',['scripts_concat_markdown']);
@@ -109,4 +102,4 @@ gulp.task('watch',function() {
 
 
 // Run 'gulp' to build everything at once
-gulp.task('default', ['styles', 'templates', 'scripts', 'scripts_concat_tutti', 'scripts_concat_markdown']);
+gulp.task('default', ['styles', 'scripts', 'scripts_concat_tutti', 'scripts_concat_markdown']);
