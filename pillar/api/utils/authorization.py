@@ -290,7 +290,7 @@ def require_login(require_roles=set(),
                     # We don't need to log at a higher level, as this is very common.
                     # Many browsers first try to see whether authentication is needed
                     # at all, before sending the password.
-                    log.debug('Unauthenticated acces to %s attempted.', func)
+                    log.debug('Unauthenticated access to %s attempted.', func)
                 else:
                     log.warning('User %s is authenticated, but does not have required roles %s to '
                                 'access %s', g.current_user['user_id'], require_roles, func)
