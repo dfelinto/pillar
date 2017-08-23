@@ -13,6 +13,8 @@ import bson.tz_util
 import eve.utils
 import pymongo
 import werkzeug.exceptions as wz_exceptions
+import werkzeug.datastructures
+
 from bson import ObjectId
 from flask import Blueprint
 from flask import current_app
@@ -673,7 +675,7 @@ def assert_file_size_allowed(file_size: int):
 
 @file_storage.route('/stream/<string:project_id>', methods=['POST', 'OPTIONS'])
 @require_login()
-def stream_to_storage(project_id):
+def stream_to_storage(project_id: str):
     project_oid = utils.str2id(project_id)
 
     projects = current_app.data.driver.db['projects']
@@ -727,7 +729,9 @@ def stream_to_storage(project_id):
     return resp
 
 
-def upload_and_process(local_file, uploaded_file, project_id):
+def upload_and_process(local_file: typing.Union[io.BytesIO, typing.BinaryIO],
+                       uploaded_file: werkzeug.datastructures.FileStorage,
+                       project_id: str):
     # Figure out the file size, as we need to pass this in explicitly to GCloud.
     # Otherwise it always uses os.fstat(file_obj.fileno()).st_size, which isn't
     # supported by a BytesIO object (even though it does have a fileno

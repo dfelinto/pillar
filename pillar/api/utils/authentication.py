@@ -20,11 +20,11 @@ from pillar.api.utils import remove_private_keys
 
 log = logging.getLogger(__name__)
 
-CLI_USER = {
-    'user_id': 'CLI',
-    'groups': [],
-    'roles': {'admin'},
-}
+# Construction is done when requested, since constructing a UserClass instance
+# requires an application context to look up capabilities. We set the initial
+# value to a not-None singleton to be able to differentiate between
+# g.current_user set to "not logged in" or "uninitialised CLI_USER".
+CLI_USER = ...
 
 
 def force_cli_user():
@@ -33,7 +33,22 @@ def force_cli_user():
     This is used as a marker to avoid authorization checks and just allow everything.
     """
 
-    log.warning('Logging in as CLI_USER, circumventing authentication.')
+    global CLI_USER
+
+    from pillar.auth import UserClass
+
+    if CLI_USER is ...:
+        CLI_USER = UserClass.construct('CLI', {
+            '_id': 'CLI',
+            'groups': [],
+            'roles': {'admin'},
+            'email': 'local@nowhere',
+            'username': 'CLI',
+        })
+        log.warning('CONSTRUCTED CLI USER %s of type %s', id(CLI_USER), id(type(CLI_USER)))
+
+    log.warning('Logging in as CLI_USER (%s) of type %s, circumventing authentication.',
+                id(CLI_USER), id(type(CLI_USER)))
     g.current_user = CLI_USER
 
 
@@ -127,6 +142,8 @@ def validate_this_token(token, oauth_subclient=None):
     :rtype: dict
     """
 
+    from pillar.auth import UserClass
+
     g.current_user = None
     _delete_expired_tokens()
 
@@ -151,9 +168,7 @@ def validate_this_token(token, oauth_subclient=None):
         log.debug('Validation failed, user not logged in')
         return None
 
-    g.current_user = {'user_id': db_user['_id'],
-                      'groups': db_user['groups'],
-                      'roles': set(db_user.get('roles', []))}
+    g.current_user = UserClass.construct(token, db_user)
 
     return db_user
 
